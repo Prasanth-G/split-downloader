@@ -18,12 +18,12 @@ type SDR struct{
 }
 type bytesrange struct{
 	order int
-	start int64
-	end int64
+	start uint64
+	end uint64
 }
 
 //PartialDownload - Download a part of file from internet
-func (downloader SDR)PartialDownload( bytes [2]int64, saveas string, saveto string){
+func (downloader SDR)PartialDownload( bytes [2]uint64, saveas string, saveto string){
 	downloadLink, _ := url.Parse(downloader.DownloadLink)
 	if saveas == ""{
 		temp := strings.Split(downloadLink.Path, "/")
@@ -32,7 +32,7 @@ func (downloader SDR)PartialDownload( bytes [2]int64, saveas string, saveto stri
 	if _, err := os.Stat(saveto); err != nil{
 		os.MkdirAll(saveto, os.ModeDir)
 	}
-	chunkSize := int64(math.Ceil(float64(bytes[1] - bytes[0]) / float64(downloader.NoOfParts)))
+	chunkSize := uint64(math.Ceil(float64(bytes[1] - bytes[0]) / float64(downloader.NoOfParts)))
 	output := make([][]byte, downloader.NoOfParts)
 	var waitgroup sync.WaitGroup
 	var jobs = make([]bytesrange, downloader.NoOfParts)
@@ -51,7 +51,7 @@ func (downloader SDR)PartialDownload( bytes [2]int64, saveas string, saveto stri
 			defer waitgroup.Done()
 			var request *http.Request
 			request, _ = http.NewRequest("GET", downloader.DownloadLink, nil)
-			request.Header.Set("Range", "bytes="+strconv.FormatInt(job.start, 10)+"-"+strconv.FormatInt(job.end, 10))
+			request.Header.Set("Range", "bytes="+strconv.FormatUint(job.start, 10)+"-"+strconv.FormatUint(job.end, 10))
 			client := &http.Client{}
 			response, err := client.Do(request)
 			if err != nil{
@@ -75,5 +75,5 @@ func (downloader SDR)PartialDownload( bytes [2]int64, saveas string, saveto stri
 //CompleteDownload - Download the Whole file from internet
 func (downloader SDR)CompleteDownload(saveas string, saveto string){
 	response, _ := http.Head(downloader.DownloadLink)
-	downloader.PartialDownload([2]int64{0,response.ContentLength}, saveas, saveto)
+	downloader.PartialDownload([2]uint64{0, uint64(response.ContentLength)}, saveas, saveto)
 }
