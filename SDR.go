@@ -63,7 +63,7 @@ func (downloader SDR)PartialDownload( bytes [2]uint64, saveas string, saveto str
 		}(job)
 	}
 	waitgroup.Wait()
-	final, err := os.OpenFile(path.Join(saveto,saveas), os.O_APPEND | os.O_CREATE | os.O_TRUNC, 0600)
+	final, err := os.OpenFile(path.Join(saveto,saveas),  os.O_CREATE | os.O_TRUNC | os.O_WRONLY, 0600)
 	if err != nil{
 		fmt.Println(err,"ERROR OPENING FILE")
 	}
